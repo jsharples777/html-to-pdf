@@ -1,0 +1,2 @@
+export {HTMLtoPDFHelper} from './HTMLtoPDFHelper';
+
