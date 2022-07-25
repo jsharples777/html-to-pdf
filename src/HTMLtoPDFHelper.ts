@@ -324,6 +324,7 @@ export class HTMLtoPDFHelper {
         const currentFontSize = currentFontStackItem.fontSize;
 
         if (element.type === 'tag') {
+            console.log(element.name);
             switch (element.name.trim().toUpperCase()) {
                 case 'OL':
                 case 'UL': {
