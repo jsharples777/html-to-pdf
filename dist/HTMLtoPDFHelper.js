@@ -305,11 +305,16 @@ class HTMLtoPDFHelper {
         pdfInfo.fontStack.shift();
     }
     preAddElementToPDF(config, element, pdfInfo) {
-        let stackItem;
+        const currentActiveItem = pdfInfo.fontStack[0];
+        let stackItem = {
+            fontStyle: currentActiveItem.fontStyle,
+            fontSize: currentActiveItem.fontSize,
+            fontName: currentActiveItem.fontName,
+            element
+        };
         if (element.type === 'tag') {
             switch (element.name.trim().toUpperCase()) {
                 case 'H1': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
                         fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
@@ -322,10 +327,9 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'H2': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
-                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
+                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h2,
                         fontName: config.fonts.defaultFont,
                         element
                     };
@@ -335,10 +339,9 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'H3': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
-                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
+                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h3,
                         fontName: config.fonts.defaultFont,
                         element
                     };
@@ -348,10 +351,9 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'H4': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
-                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
+                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h4,
                         fontName: config.fonts.defaultFont,
                         element
                     };
@@ -361,10 +363,9 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'H5': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
-                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
+                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h5,
                         fontName: config.fonts.defaultFont,
                         element
                     };
@@ -374,10 +375,9 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'H6': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
-                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
+                        fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h6,
                         fontName: config.fonts.defaultFont,
                         element
                     };
@@ -387,7 +387,6 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'CODE': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
                         fontSize: currentActiveItem.fontSize,
@@ -400,7 +399,6 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'STRONG': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: 'Bold',
                         fontSize: currentActiveItem.fontSize,
@@ -410,7 +408,6 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'OL': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
                         fontSize: currentActiveItem.fontSize,
@@ -429,7 +426,6 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'UL': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
                         fontSize: currentActiveItem.fontSize,
@@ -448,7 +444,6 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'LI': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: '',
                         fontSize: currentActiveItem.fontSize,
@@ -463,7 +458,6 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 case 'EM': {
-                    const currentActiveItem = pdfInfo.fontStack[0];
                     stackItem = {
                         fontStyle: 'Oblique',
                         fontSize: currentActiveItem.fontSize,
@@ -473,29 +467,11 @@ class HTMLtoPDFHelper {
                     break;
                 }
                 default: {
-                    const currentActiveItem = pdfInfo.fontStack[0];
-                    stackItem = {
-                        fontStyle: currentActiveItem.fontStyle,
-                        fontSize: currentActiveItem.fontSize,
-                        fontName: currentActiveItem.fontName,
-                        element
-                    };
                     break;
                 }
             }
         }
-        else {
-            const currentActiveItem = pdfInfo.fontStack[0];
-            stackItem = {
-                fontStyle: currentActiveItem.fontStyle,
-                fontSize: currentActiveItem.fontSize,
-                fontName: currentActiveItem.fontName,
-                element
-            };
-        }
-        if (stackItem) {
-            pdfInfo.fontStack.unshift(stackItem);
-        }
+        pdfInfo.fontStack.unshift(stackItem);
     }
     convertElementToPDF(config, parentElement, element, pdfConfig, pdfInfo) {
         if (element) {
