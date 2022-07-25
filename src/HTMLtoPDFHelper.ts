@@ -419,20 +419,22 @@ export class HTMLtoPDFHelper {
     }
 
     protected postAddElementToPDF(config: HTMLtoPDFConfigInternal, element: any, pdfInfo: PDFInfo): void {
-        switch (element.type.trim().toUpperCase()) {
-            case 'OL':
-            case 'UL': {
-                pdfInfo.currentIndent -= config.idents.list;
-                pdfInfo.indentLevel--;
-                pdfInfo.listStack.shift();
-                break;
-            }
-            case 'LI': {
-                pdfInfo.currentIndent -= config.idents.listItem;
-                break;
-            }
-            default: {
-                break;
+        if (element.type === 'tag') {
+            switch (element.name.trim().toUpperCase()) {
+                case 'OL':
+                case 'UL': {
+                    pdfInfo.currentIndent -= config.idents.list;
+                    pdfInfo.indentLevel--;
+                    pdfInfo.listStack.shift();
+                    break;
+                }
+                case 'LI': {
+                    pdfInfo.currentIndent -= config.idents.listItem;
+                    break;
+                }
+                default: {
+                    break;
+                }
             }
         }
         // remove the last font stack item
