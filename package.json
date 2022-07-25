@@ -1,6 +1,6 @@
 {
   "name": "html-to-pdf-jps",
-  "version": "0.0.3",
+  "version": "0.0.3-1",
   "description": "Convert a Best Practise XML file to a patient object and corresponding files",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
