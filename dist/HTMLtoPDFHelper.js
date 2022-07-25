@@ -1,146 +1,14 @@
-const {Parser} = require('htmlparser2')
-const {DomHandler,ChildNode} = require('domhandler');
-//import {DomHandler} from "domhandler";
-
-export type PDFConfigElement = {
-    x: number,
-    y: number,
-    w?: number,
-    h?: number,
-    font?: string,
-    fontStyle?: string,
-    fontSize?: number,
-    text: string,
-    image?: {
-        fileName: string,
-        format: string
-    },
-    imageBase64?: string,
-    fillColour?: number
-}
-
-export type PDFConfigPage = {
-    pageElements: PDFConfigElement[],
-    backgroundImage?: {
-        fileName: string,
-        format: string
-    },
-}
-
-export type PDFConfig = {
-    fileName: string,
-    defaultFont?: string,
-    defaultFontSize?: number
-    pages: PDFConfigPage[]
-}
-
-
-type PDFInfo = {
-    lineSpacingInMM: number;
-    maxCharactersPerLineOfText: number;
-    cumulativeContentHeight: number;
-    pageCount: number;
-    currentIndent: number;
-    indentLevel: number;
-    fontStack: FontStackItem[];
-    listStack: ListStackItem[]
-}
-
-type FontStackItem = {
-    element: any | null,
-    fontName: string,
-    fontSize: number,
-    fontStyle: string
-}
-
-type ListStackItem = {
-    element: any,
-    isNumbered: boolean,
-    itemCount: number
-}
-
-export type HTMLtoPDFConfig = {
-    //pageSize:string,
-    margins?: {
-        top?: number,
-        bottom?: number,
-        left?: number,
-        right?: number
-    },
-    idents?: {
-        list?: number,
-        listItem?: number,
-    },
-    fonts?: {
-        defaultFont?: string,
-        defaultFontSize?: number,
-        codeFont?: string,
-        lineSpacing?: number,
-    },
-    headingsIncreaseFontSize?: {
-        h1: number,
-        h2: number,
-        h3: number,
-        h4: number,
-        h5: number,
-        h6: number,
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HTMLtoPDFHelper = void 0;
+const { Parser } = require('htmlparser2');
+const { DomHandler, ChildNode } = require('domhandler');
+class HTMLtoPDFHelper {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    constructor() {
     }
-}
-
-type HTMLtoPDFConfigInternal = {
-    //pageSize:string,
-    margins: {
-        top: number,
-        bottom: number,
-        left: number,
-        right: number
-    },
-    idents: {
-        list: number,
-        listItem: number,
-    },
-    fonts: {
-        defaultFont: string,
-        defaultFontSize: number,
-        codeFont: string,
-        lineSpacing: number,
-    },
-    headingsIncreaseFontSize: {
-        h1: number,
-        h2: number,
-        h3: number,
-        h4: number,
-        h5: number,
-        h6: number,
-    }
-}
-
-export class HTMLtoPDFHelper {
-    public static MM_PER_FONT_POINT = 0.3527777778;
-    public static TOP_MARGIN = 10;
-    public static LEFT_MARGIN = 10;
-    public static BOTTOM_MARGIN = 10;
-    public static RIGHT_MARGIN = 10;
-    public static DEFAULT_INDENT = 10;
-    public static DEFAULT_LIST_ITEM_INDENT = 5;
-    public static DEFAULT_FONT = 'Helvetica'
-    public static CODE_ELEMENT_FONT = 'Courier'
-    public static DEFAULT_FONT_SIZE = 10;
-    public static DEFAULT_LINE_SPACING = 0.2;
-    private static a4Dimensions: number[] = [210, 297];
-
-    private static H1_FONT_SIZE_CHANGE = 14;
-    private static H2_FONT_SIZE_CHANGE = 12;
-    private static H3_FONT_SIZE_CHANGE = 10;
-    private static H4_FONT_SIZE_CHANGE = 8;
-    private static H5_FONT_SIZE_CHANGE = 6;
-    private static H6_FONT_SIZE_CHANGE = 4;
-
-
-    private static _instance: HTMLtoPDFHelper;
-
-    public static getDefaultConfig(): HTMLtoPDFConfigInternal {
-        const result: HTMLtoPDFConfigInternal = {
+    static getDefaultConfig() {
+        const result = {
             margins: {
                 top: HTMLtoPDFHelper.TOP_MARGIN,
                 bottom: HTMLtoPDFHelper.BOTTOM_MARGIN,
@@ -165,33 +33,38 @@ export class HTMLtoPDFHelper {
                 h5: HTMLtoPDFHelper.H5_FONT_SIZE_CHANGE,
                 h6: HTMLtoPDFHelper.H6_FONT_SIZE_CHANGE,
             }
-
-        }
+        };
         return result;
     }
-
-    protected static mergeSuppliedConfigWithDefaultConfig(suppliedConfig: HTMLtoPDFConfig | null): HTMLtoPDFConfigInternal {
+    static mergeSuppliedConfigWithDefaultConfig(suppliedConfig) {
         const defaultConfig = HTMLtoPDFHelper.getDefaultConfig();
         if (suppliedConfig) {
             if (suppliedConfig.fonts) {
-                if (suppliedConfig.fonts.defaultFont) defaultConfig.fonts.defaultFont = suppliedConfig.fonts.defaultFont;
-                if (suppliedConfig.fonts.defaultFontSize) defaultConfig.fonts.defaultFontSize = suppliedConfig.fonts.defaultFontSize;
-                if (suppliedConfig.fonts.codeFont) defaultConfig.fonts.codeFont = suppliedConfig.fonts.codeFont;
-                if (suppliedConfig.fonts.lineSpacing) defaultConfig.fonts.lineSpacing = suppliedConfig.fonts.lineSpacing;
+                if (suppliedConfig.fonts.defaultFont)
+                    defaultConfig.fonts.defaultFont = suppliedConfig.fonts.defaultFont;
+                if (suppliedConfig.fonts.defaultFontSize)
+                    defaultConfig.fonts.defaultFontSize = suppliedConfig.fonts.defaultFontSize;
+                if (suppliedConfig.fonts.codeFont)
+                    defaultConfig.fonts.codeFont = suppliedConfig.fonts.codeFont;
+                if (suppliedConfig.fonts.lineSpacing)
+                    defaultConfig.fonts.lineSpacing = suppliedConfig.fonts.lineSpacing;
             }
-
             if (suppliedConfig.idents) {
-                if (suppliedConfig.idents.list) defaultConfig.idents.list = suppliedConfig.idents.list;
-                if (suppliedConfig.idents.listItem) defaultConfig.idents.listItem = suppliedConfig.idents.listItem;
+                if (suppliedConfig.idents.list)
+                    defaultConfig.idents.list = suppliedConfig.idents.list;
+                if (suppliedConfig.idents.listItem)
+                    defaultConfig.idents.listItem = suppliedConfig.idents.listItem;
             }
-
             if (suppliedConfig.margins) {
-                if (suppliedConfig.margins.top) defaultConfig.margins.top = suppliedConfig.margins.top;
-                if (suppliedConfig.margins.bottom) defaultConfig.margins.bottom = suppliedConfig.margins.bottom;
-                if (suppliedConfig.margins.left) defaultConfig.margins.left = suppliedConfig.margins.left;
-                if (suppliedConfig.margins.right) defaultConfig.margins.right = suppliedConfig.margins.right;
+                if (suppliedConfig.margins.top)
+                    defaultConfig.margins.top = suppliedConfig.margins.top;
+                if (suppliedConfig.margins.bottom)
+                    defaultConfig.margins.bottom = suppliedConfig.margins.bottom;
+                if (suppliedConfig.margins.left)
+                    defaultConfig.margins.left = suppliedConfig.margins.left;
+                if (suppliedConfig.margins.right)
+                    defaultConfig.margins.right = suppliedConfig.margins.right;
             }
-
             if (suppliedConfig.headingsIncreaseFontSize) {
                 defaultConfig.headingsIncreaseFontSize.h1 = suppliedConfig.headingsIncreaseFontSize.h1;
                 defaultConfig.headingsIncreaseFontSize.h2 = suppliedConfig.headingsIncreaseFontSize.h2;
@@ -203,21 +76,14 @@ export class HTMLtoPDFHelper {
         }
         return defaultConfig;
     }
-
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    private constructor() {
-    }
-
-    public static getInstance(): HTMLtoPDFHelper {
+    static getInstance() {
         if (!(HTMLtoPDFHelper._instance)) {
             HTMLtoPDFHelper._instance = new HTMLtoPDFHelper();
         }
         return HTMLtoPDFHelper._instance;
     }
-
-    public static wrapLine(line: string, maxCharacterLength: number): string[] {
-        let lines: string[] = [];
+    static wrapLine(line, maxCharacterLength) {
+        let lines = [];
         if (line.length > maxCharacterLength) {
             let newLine = '';
             // try to find the space closest to the end
@@ -228,11 +94,12 @@ export class HTMLtoPDFHelper {
                 if ((newLine.length + lineComponents[index].length + 1) < maxCharacterLength) {
                     newLine += `${lineComponents[index]} `;
                     index++;
-                } else {
+                }
+                else {
                     // line components too long
                     done = true;
                     // wrap the remainder of the line
-                    let lineRemainder: string[] = [];
+                    let lineRemainder = [];
                     for (let index2 = index; index2 < lineComponents.length; index2++) {
                         lineRemainder.push(lineComponents[index2]);
                     }
@@ -241,17 +108,16 @@ export class HTMLtoPDFHelper {
                     const additionalLines = HTMLtoPDFHelper.wrapLine(restOfLine, maxCharacterLength);
                     additionalLines.forEach((additionalLine) => {
                         lines.push(additionalLine);
-                    })
+                    });
                 }
             }
-        } else {
+        }
+        else {
             lines.push(line);
         }
         return lines;
-
     }
-
-    protected computeElementHeight(config: HTMLtoPDFConfigInternal, element: any, pdfInfo: PDFInfo): number {
+    computeElementHeight(config, element, pdfInfo) {
         let height = 0;
         if (element.type === 'tag') {
             switch (element.name.trim().toUpperCase()) {
@@ -293,36 +159,34 @@ export class HTMLtoPDFHelper {
             }
         }
         else if (element.type === 'text') {
-                const currentFontStackItem = pdfInfo.fontStack[0];
-                height = HTMLtoPDFHelper.MM_PER_FONT_POINT * currentFontStackItem.fontSize;
-                const text: string = element.data;
-                const isInListItem = (pdfInfo.listStack.length > 0);
-                if (text) {
-                    if (text.length >= pdfInfo.maxCharactersPerLineOfText) {
-                        const lines = HTMLtoPDFHelper.wrapLine(text, pdfInfo.maxCharactersPerLineOfText);
-                        if (isInListItem) {
-                            height = height * (lines.length - 1);
-                        } else {
-                            height = height * lines.length;
-                        }
-
-                    } else {
-                        if (isInListItem) height = 0;
+            const currentFontStackItem = pdfInfo.fontStack[0];
+            height = HTMLtoPDFHelper.MM_PER_FONT_POINT * currentFontStackItem.fontSize;
+            const text = element.data;
+            const isInListItem = (pdfInfo.listStack.length > 0);
+            if (text) {
+                if (text.length >= pdfInfo.maxCharactersPerLineOfText) {
+                    const lines = HTMLtoPDFHelper.wrapLine(text, pdfInfo.maxCharactersPerLineOfText);
+                    if (isInListItem) {
+                        height = height * (lines.length - 1);
                     }
-
-                } else {
-                    height = 0;
+                    else {
+                        height = height * lines.length;
+                    }
                 }
-
-
+                else {
+                    if (isInListItem)
+                        height = 0;
+                }
+            }
+            else {
+                height = 0;
+            }
         }
         return height;
     }
-
-    protected addElementToPDF(config: HTMLtoPDFConfigInternal, element: any, page: PDFConfigPage, pdfInfo: PDFInfo): void {
+    addElementToPDF(config, element, page, pdfInfo) {
         const currentFontStackItem = pdfInfo.fontStack[0];
         const currentFontSize = currentFontStackItem.fontSize;
-
         if (element.type === 'tag') {
             switch (element.name.trim().toUpperCase()) {
                 case 'OL':
@@ -335,7 +199,6 @@ export class HTMLtoPDFHelper {
                     const listStackItem = pdfInfo.listStack[0];
                     const height = HTMLtoPDFHelper.MM_PER_FONT_POINT * currentFontSize;
                     pdfInfo.cumulativeContentHeight += height;
-
                     if (listStackItem.isNumbered) {
                         page.pageElements.push({
                             text: `${listStackItem.itemCount}.`,
@@ -345,7 +208,8 @@ export class HTMLtoPDFHelper {
                             fontSize: currentFontStackItem.fontSize,
                             fontStyle: currentFontStackItem.fontStyle
                         });
-                    } else {
+                    }
+                    else {
                         page.pageElements.push({
                             text: '\u2022',
                             x: pdfInfo.currentIndent,
@@ -372,7 +236,7 @@ export class HTMLtoPDFHelper {
                         h: 1,
                         text: '',
                         fillColour: 0
-                    })
+                    });
                     break;
                 }
                 default: {
@@ -389,8 +253,8 @@ export class HTMLtoPDFHelper {
                     const lines = HTMLtoPDFHelper.wrapLine(text, pdfInfo.maxCharactersPerLineOfText);
                     lines.forEach((line, index) => {
                         if ((index === 0) && (isInListItem)) {
-
-                        } else {
+                        }
+                        else {
                             pdfInfo.cumulativeContentHeight += height;
                         }
                         page.pageElements.push({
@@ -402,8 +266,10 @@ export class HTMLtoPDFHelper {
                             fontStyle: currentFontStackItem.fontStyle
                         });
                     });
-                } else {
-                    if (!isInListItem) pdfInfo.cumulativeContentHeight += height;
+                }
+                else {
+                    if (!isInListItem)
+                        pdfInfo.cumulativeContentHeight += height;
                     page.pageElements.push({
                         text: text,
                         x: pdfInfo.currentIndent,
@@ -414,11 +280,9 @@ export class HTMLtoPDFHelper {
                     });
                 }
             }
-
         }
     }
-
-    protected postAddElementToPDF(config: HTMLtoPDFConfigInternal, element: any, pdfInfo: PDFInfo): void {
+    postAddElementToPDF(config, element, pdfInfo) {
         switch (element.type.trim().toUpperCase()) {
             case 'OL':
             case 'UL': {
@@ -438,11 +302,9 @@ export class HTMLtoPDFHelper {
         // remove the last font stack item
         pdfInfo.fontStack.shift();
     }
-
-    protected preAddElementToPDF(config: HTMLtoPDFConfigInternal, element: any, pdfInfo: PDFInfo): void {
-        let stackItem: FontStackItem;
+    preAddElementToPDF(config, element, pdfInfo) {
+        let stackItem;
         if (element.type === 'tag') {
-
             switch (element.name.trim().toUpperCase()) {
                 case 'H1': {
                     const currentActiveItem = pdfInfo.fontStack[0];
@@ -451,7 +313,7 @@ export class HTMLtoPDFHelper {
                         fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
                         fontName: config.fonts.defaultFont,
                         element
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -459,13 +321,12 @@ export class HTMLtoPDFHelper {
                 }
                 case 'H2': {
                     const currentActiveItem = pdfInfo.fontStack[0];
-
                     stackItem = {
                         fontStyle: '',
                         fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
                         fontName: config.fonts.defaultFont,
                         element
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -473,13 +334,12 @@ export class HTMLtoPDFHelper {
                 }
                 case 'H3': {
                     const currentActiveItem = pdfInfo.fontStack[0];
-
                     stackItem = {
                         fontStyle: '',
                         fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
                         fontName: config.fonts.defaultFont,
                         element
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -487,13 +347,12 @@ export class HTMLtoPDFHelper {
                 }
                 case 'H4': {
                     const currentActiveItem = pdfInfo.fontStack[0];
-
                     stackItem = {
                         fontStyle: '',
                         fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
                         fontName: config.fonts.defaultFont,
                         element
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -501,13 +360,12 @@ export class HTMLtoPDFHelper {
                 }
                 case 'H5': {
                     const currentActiveItem = pdfInfo.fontStack[0];
-
                     stackItem = {
                         fontStyle: '',
                         fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
                         fontName: config.fonts.defaultFont,
                         element
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -515,13 +373,12 @@ export class HTMLtoPDFHelper {
                 }
                 case 'H6': {
                     const currentActiveItem = pdfInfo.fontStack[0];
-
                     stackItem = {
                         fontStyle: '',
                         fontSize: config.fonts.defaultFontSize + config.headingsIncreaseFontSize.h1,
                         fontName: config.fonts.defaultFont,
                         element
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -529,13 +386,12 @@ export class HTMLtoPDFHelper {
                 }
                 case 'CODE': {
                     const currentActiveItem = pdfInfo.fontStack[0];
-
                     stackItem = {
                         fontStyle: '',
                         fontSize: currentActiveItem.fontSize,
                         fontName: config.fonts.codeFont,
                         element
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -548,8 +404,7 @@ export class HTMLtoPDFHelper {
                         fontSize: currentActiveItem.fontSize,
                         fontName: currentActiveItem.fontName,
                         element
-
-                    }
+                    };
                     break;
                 }
                 case 'OL': {
@@ -559,13 +414,12 @@ export class HTMLtoPDFHelper {
                         fontSize: currentActiveItem.fontSize,
                         fontName: currentActiveItem.fontName,
                         element
-
-                    }
-                    const listStackItem: ListStackItem = {
+                    };
+                    const listStackItem = {
                         element: element,
                         isNumbered: true,
                         itemCount: 0
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -579,13 +433,12 @@ export class HTMLtoPDFHelper {
                         fontSize: currentActiveItem.fontSize,
                         fontName: currentActiveItem.fontName,
                         element
-
-                    }
-                    const listStackItem: ListStackItem = {
+                    };
+                    const listStackItem = {
                         element: element,
                         isNumbered: false,
                         itemCount: 0
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -599,8 +452,7 @@ export class HTMLtoPDFHelper {
                         fontSize: currentActiveItem.fontSize,
                         fontName: currentActiveItem.fontName,
                         element
-
-                    }
+                    };
                     if (currentActiveItem.fontStyle !== '') {
                         stackItem.fontStyle = currentActiveItem.fontStyle;
                     }
@@ -615,8 +467,7 @@ export class HTMLtoPDFHelper {
                         fontSize: currentActiveItem.fontSize,
                         fontName: currentActiveItem.fontName,
                         element
-
-                    }
+                    };
                     break;
                 }
                 default: {
@@ -626,14 +477,10 @@ export class HTMLtoPDFHelper {
                         fontSize: currentActiveItem.fontSize,
                         fontName: currentActiveItem.fontName,
                         element
-
-                    }
-
+                    };
                     break;
                 }
             }
-
-
         }
         else {
             const currentActiveItem = pdfInfo.fontStack[0];
@@ -642,88 +489,99 @@ export class HTMLtoPDFHelper {
                 fontSize: currentActiveItem.fontSize,
                 fontName: currentActiveItem.fontName,
                 element
-
-            }
+            };
         }
         if (stackItem) {
             pdfInfo.fontStack.unshift(stackItem);
         }
     }
-
-
-    protected convertElementToPDF(config: HTMLtoPDFConfigInternal, parentElement: any | null, element: any, pdfConfig:PDFConfig, pdfInfo: PDFInfo): void {
+    convertElementToPDF(config, parentElement, element, pdfConfig, pdfInfo) {
         if (element) {
             if (pdfInfo.pageCount === 0) {
                 pdfInfo.pageCount = 1;
                 pdfConfig.pages.push({
-                    pageElements:[]
-                })
+                    pageElements: []
+                });
             }
             const elementHeight = this.computeElementHeight(config, element, pdfInfo);
-
             let currentPage = pdfConfig.pages[pdfConfig.pages.length - 1];
-
             if ((pdfInfo.cumulativeContentHeight + elementHeight) >= (HTMLtoPDFHelper.a4Dimensions[1] - config.margins.bottom)) {
                 pdfInfo.pageCount++;
                 currentPage = {
-                    pageElements:[]
-                }
+                    pageElements: []
+                };
                 pdfConfig.pages.push(currentPage);
                 pdfInfo.cumulativeContentHeight = config.margins.top;
             }
             this.preAddElementToPDF(config, element, pdfInfo);
             this.addElementToPDF(config, element, currentPage, pdfInfo);
-
             if (element.children) {
-                element.children.forEach((child: any) => {
+                element.children.forEach((child) => {
                     this.convertElementToPDF(config, element, child, pdfConfig, pdfInfo);
                 });
             }
             this.postAddElementToPDF(config, element, pdfInfo);
         }
     }
-
-    public convertHTMLtoPDF(suppliedConfig: HTMLtoPDFConfig | null, html: string): Promise<{ pdfConfig: PDFConfig, pdfInfo: PDFInfo }> {
+    convertHTMLtoPDF(suppliedConfig, html) {
         return new Promise((resolve, reject) => {
             const config = HTMLtoPDFHelper.mergeSuppliedConfigWithDefaultConfig(suppliedConfig);
-            const handler = new DomHandler((err: any, dom: any) => {
+            const handler = new DomHandler((err, dom) => {
+                var _a, _b;
                 if (err) {
                     reject(err);
-                } else {
-                    const pdfConfig:PDFConfig = {
-                        pages:[],
-                        defaultFont:config.fonts.defaultFont,
+                }
+                else {
+                    const pdfConfig = {
+                        pages: [],
+                        defaultFont: config.fonts.defaultFont,
                         defaultFontSize: config.fonts.defaultFontSize,
-                        fileName:''
-                    }
-                    const pdfInfo: PDFInfo = {
-                        lineSpacingInMM: config.fonts?.defaultFontSize * HTMLtoPDFHelper.MM_PER_FONT_POINT * (1 + config.fonts?.lineSpacing),
+                        fileName: ''
+                    };
+                    const pdfInfo = {
+                        lineSpacingInMM: ((_a = config.fonts) === null || _a === void 0 ? void 0 : _a.defaultFontSize) * HTMLtoPDFHelper.MM_PER_FONT_POINT * (1 + ((_b = config.fonts) === null || _b === void 0 ? void 0 : _b.lineSpacing)),
                         maxCharactersPerLineOfText: 2 * Math.floor((HTMLtoPDFHelper.a4Dimensions[0] - (config.margins.left + config.margins.right)) / (config.fonts.defaultFontSize * HTMLtoPDFHelper.MM_PER_FONT_POINT)),
                         cumulativeContentHeight: config.margins.top,
                         pageCount: 0,
                         currentIndent: config.margins.left,
                         indentLevel: 0,
                         fontStack: [{
-                            fontName: config.fonts.defaultFont,
-                            fontSize: config.fonts.defaultFontSize,
-                            fontStyle: '',
-                            element: null
-                        }],
+                                fontName: config.fonts.defaultFont,
+                                fontSize: config.fonts.defaultFontSize,
+                                fontStyle: '',
+                                element: null
+                            }],
                         listStack: []
-                    }
-                    dom.forEach((element:any) => {
+                    };
+                    dom.forEach((element) => {
                         this.convertElementToPDF(config, null, element, pdfConfig, pdfInfo);
-                    })
-
-                    resolve({pdfConfig, pdfInfo});
+                    });
+                    resolve({ pdfConfig, pdfInfo });
                 }
-
-
             });
-
             const parser = new Parser(handler);
             parser.write(html);
             parser.end();
         });
     }
 }
+exports.HTMLtoPDFHelper = HTMLtoPDFHelper;
+HTMLtoPDFHelper.MM_PER_FONT_POINT = 0.3527777778;
+HTMLtoPDFHelper.TOP_MARGIN = 10;
+HTMLtoPDFHelper.LEFT_MARGIN = 10;
+HTMLtoPDFHelper.BOTTOM_MARGIN = 10;
+HTMLtoPDFHelper.RIGHT_MARGIN = 10;
+HTMLtoPDFHelper.DEFAULT_INDENT = 10;
+HTMLtoPDFHelper.DEFAULT_LIST_ITEM_INDENT = 5;
+HTMLtoPDFHelper.DEFAULT_FONT = 'Helvetica';
+HTMLtoPDFHelper.CODE_ELEMENT_FONT = 'Courier';
+HTMLtoPDFHelper.DEFAULT_FONT_SIZE = 10;
+HTMLtoPDFHelper.DEFAULT_LINE_SPACING = 0.2;
+HTMLtoPDFHelper.a4Dimensions = [210, 297];
+HTMLtoPDFHelper.H1_FONT_SIZE_CHANGE = 14;
+HTMLtoPDFHelper.H2_FONT_SIZE_CHANGE = 12;
+HTMLtoPDFHelper.H3_FONT_SIZE_CHANGE = 10;
+HTMLtoPDFHelper.H4_FONT_SIZE_CHANGE = 8;
+HTMLtoPDFHelper.H5_FONT_SIZE_CHANGE = 6;
+HTMLtoPDFHelper.H6_FONT_SIZE_CHANGE = 4;
+//# sourceMappingURL=HTMLtoPDFHelper.js.map

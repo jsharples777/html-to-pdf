@@ -13,6 +13,7 @@
     "declaration": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true
+
   },
   "include": [
     "./src"
