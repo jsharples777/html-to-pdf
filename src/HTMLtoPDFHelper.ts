@@ -285,6 +285,10 @@ export class HTMLtoPDFHelper {
                 }
                 case 'BR': {
                     const currentFontStackItem = pdfInfo.fontStack[0];
+                    height = HTMLtoPDFHelper.MM_PER_FONT_POINT * currentFontStackItem.fontSize * 0.5;
+                }
+                case 'P': {
+                    const currentFontStackItem = pdfInfo.fontStack[0];
                     height = HTMLtoPDFHelper.MM_PER_FONT_POINT * currentFontStackItem.fontSize;
                 }
                 default: {
@@ -360,6 +364,11 @@ export class HTMLtoPDFHelper {
                     break;
                 }
                 case 'BR': {
+                    const height = HTMLtoPDFHelper.MM_PER_FONT_POINT * currentFontSize * 0.5;
+                    pdfInfo.cumulativeContentHeight += height;
+                    break;
+                }
+                case 'P': {
                     const height = HTMLtoPDFHelper.MM_PER_FONT_POINT * currentFontSize;
                     pdfInfo.cumulativeContentHeight += height;
                     break;
